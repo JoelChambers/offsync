@@ -1,0 +1,81 @@
+# README
+# @author Filipp Lepalaan <filipp@mcare.fi>
+# @date 06.06.2010
+
+# Introduction
+This is an offsite backup solution based on rsync and launchd. It's pretty easy to use and
+set up.
+
+# Files       
+- start_offsite.sh the main script that does the actual backup and notification
+- stop_offsite.sh the script to stop the backup in case it exceeds a time limit
+- offsite_include.sh paths to files and directories to back up
+
+# Installation
+- Make sure both the client and the server are running the same version of rsync.
+The Mac ToolKit (http://github.com/filipp/mtk) has a script to build the latest
+rsync with all the Mac-specific patches
+- Install rsync to /usr/local/bin/
+- Make sure your firewall permits traffic on 873 TCP/UDP
+- Create rsyncd.conf on the server and configure to your liking
+- Start rsync in daemon mode on the server    
+- Edit start_offsite.sh to match your environment
+- Add stuff to backup into offsite_include.txt
+- Create two launchd jobs, one to run start_offsite.sh and the other to stop_offsite.sh, you can
+name them whatever you like
+- Load the new launchd plists
+
+# Operation
+
+start_offsite.sh spawns off rsync with all the apropriate switches (including --delete!)
+You can monitor the progress of the backup by tailing offsite.log
+The system will send some stats to the specified email address once the process is complete
+
+# launchd plists
+You need two of these, one to start, something like:
+
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+        <key>Label</key>
+        <string>offsync.start</string>
+        <key>ProgramArguments</key>
+        <array>
+                <string>/Library/offsync/start.sh</string>
+        </array>
+        <key>StartCalendarInterval</key>
+        <dict>
+                <key>Hour</key>
+                <integer>23</integer>
+                <key>Minute</key>
+                <integer>0</integer>
+        </dict>
+        <key>AbandonProcessGroup</key>
+        <true/>
+</dict>
+</plist>
+
+and the second one to stop:
+
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+        <key>Label</key>
+        <string>offsync.stop</string>
+        <key>ProgramArguments</key>
+        <array>
+                <string>/Library/offsync/start.sh</string>
+        </array>
+        <key>StartCalendarInterval</key>
+        <dict>
+                <key>Hour</key>
+                <integer>7</integer>
+                <key>Minute</key>
+                <integer>0</integer>
+        </dict>
+        <key>AbandonProcessGroup</key>
+        <true/>
+</dict>
+</plist>
