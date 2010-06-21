@@ -25,6 +25,23 @@ rsync with all the Mac-specific patches
 name them whatever you like
 - Load the new launchd plists
 
+# The Server
+The server end of this should be running the same version of rsync as the client. The rsync daemon should be
+running as root, with a config file looking something like this:
+
+uid = root
+gid = wheel
+
+[modulename]
+comment = modulename offsite
+path = /Volumes/data/offsite
+write only = true
+read only = false
+secrets file = /path/to/supersecret/file
+chroot = no
+
+More information on the config file is available on the rsyncd.conf manpage.
+
 # Operation
 
 start_offsite.sh spawns off rsync with all the apropriate switches (including --delete!)
