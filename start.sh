@@ -10,6 +10,11 @@ if -z "${RSYNC_TARGET}"; then
   exit 1
 fi
 
+if [[ -e "$PIDFILE" ]]; then
+  echo "Offsync already running, exiting" 2>&1
+  exit 1
+fi
+
 date >> "${LOGFILE}"
 /usr/local/bin/rsync -auvhNHXxrz\
   --stats --protect-args --fileflags --force-change --delete\
@@ -20,6 +25,10 @@ echo $! > "$PIDFILE"
 
 # wait for rsync to finish
 wait $(cat "$PIDFILE")
-rm "$PIDFILE"
+
+# stop may have already deleted it
+if [[ -e "$PIDFILE" ]]; then
+  rm "$PIDFILE"
+fi
 
 tail "$LOGFILE" | mail -E -s "Offsite backup of $(hostname) completed" $MAILTO
